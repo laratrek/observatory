@@ -14,7 +14,7 @@ class PingCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ping';
+    protected $signature = 'observatory:ping';
 
     /**
      * The console command description.
