@@ -1,0 +1,110 @@
+version: '3'
+services:
+    nginx:
+        image: nginx:1-alpine
+        ports:
+            - "8000:80"
+        volumes:
+            - ./:/var/www/html:cached
+        depends_on:
+            - php-fpm
+        environment:
+            - LANG=C.UTF-8
+        command:
+            - /bin/sh
+            - -c
+            - |
+                cat << 'EOF' > /etc/nginx/nginx.conf
+                    user  nginx;
+                    worker_processes  1;
+
+                    error_log  /var/log/nginx/error.log warn;
+                    pid        /var/run/nginx.pid;
+
+                    events {
+                        worker_connections  1024;
+                    }
+
+                    http {
+                        include       /etc/nginx/mime.types;
+                        default_type  application/octet-stream;
+
+                        log_format  main  '$$remote_addr - $$remote_user [$$time_local] "$$request" '
+                        '$$status $$body_bytes_sent "$$http_referer" '
+                        '"$$http_user_agent" "$$http_x_forwarded_for"';
+
+                        sendfile on;
+                        keepalive_timeout 3;
+                        client_max_body_size 13m;
+                        gzip on;
+                        server_tokens off;
+
+                        server {
+                            listen 80;
+                            root /var/www/html/public;
+                            access_log /var/log/nginx/access.log main;
+
+                            location / {
+                                index  index.php index.html index.htm;
+                                try_files $$uri $$uri/ /index.php?$$query_string;
+                            }
+
+                            location ~ \.php$$ {
+                                fastcgi_pass   php-fpm:9000;
+                                fastcgi_index  index.php;
+                                fastcgi_param  SCRIPT_FILENAME  $$document_root$$fastcgi_script_name;
+                                include        fastcgi_params;
+                            }
+
+                            location ~ ^/(favicon\.ico|robots\.txt) {
+                                log_not_found off;
+                                access_log off;
+                            }
+
+                            location ~ /\. {
+                                deny all;
+                            }
+
+                            location ~* \.(js|css|png|jpg|jpeg|gif|ico)$$ {
+                                expires max;
+                                log_not_found off;
+                            }
+                        }
+                    }
+                EOF
+                exec nginx -g 'daemon off;'
+
+    php-fpm:
+        image: seoda/php-fpm-for-laravel:7.2
+        volumes:
+            - ./:/var/www/html:cached
+        depends_on:
+            - mysql
+        environment:
+            - COMPOSER_ALLOW_SUPERUSER=1
+            - LANG=C.UTF-8
+
+    mailhog:
+        image: mailhog/mailhog
+        ports:
+            - "8025:8025"
+        environment:
+            - LANG=C.UTF-8
+
+    mysql:
+        image: mysql:8.0
+        volumes:
+            - mysqldata:/var/lib/mysql
+        environment:
+            - LANG=C.UTF-8
+            - MYSQL_DATABASE=homestead
+            - MYSQL_USER=homestead
+            - MYSQL_PASSWORD=secret
+            - MYSQL_RANDOM_ROOT_PASSWORD="yes"
+        entrypoint:
+            sh -c "
+                echo 'CREATE DATABASE IF NOT EXISTS homestead_test; GRANT ALL ON `homestead_test`.* TO `homestead`@`%` ;' > /docker-entrypoint-initdb.d/init.sql;
+                exec /usr/local/bin/docker-entrypoint.sh --default-authentication-plugin=mysql_native_password"
+
+volumes:
+    mysqldata:
