@@ -5,7 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSiteChecksTable extends Migration
+class CreateSitePingsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -20,7 +20,6 @@ class CreateSiteChecksTable extends Migration
             $table->integer('took');
             $table->smallInteger('status_code');
             $table->datetime('created_at');
-            $table->datetime('updated_at');
 
             $table->foreign('site_id')->references('id')->on('sites')->onDelete('cascade');
         });

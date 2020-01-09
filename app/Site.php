@@ -2,7 +2,9 @@
 
 namespace App;
 
-class Site
+use Illuminate\Database\Eloquent\Model;
+
+class Site extends Model
 {
     protected $guarded = [
         'id',
@@ -13,5 +15,10 @@ class Site
     public function pings()
     {
         return $this->hasMany('App\SitePing');
+    }
+
+    public function ping()
+    {
+        return $this->hasOne('App\SitePing');
     }
 }

@@ -2,13 +2,15 @@
 
 namespace App;
 
-class SiteCheck
+use Illuminate\Database\Eloquent\Model;
+
+class SitePing extends Model
 {
     protected $guarded = [
         'id',
         'created_at',
-        'updated_at',
     ];
+    const UPDATED_AT = null;
 
     public function site()
     {

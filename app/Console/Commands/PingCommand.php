@@ -14,7 +14,7 @@ class PingCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ping';
+    protected $signature = 'observatory:ping';
 
     /**
      * The console command description.
@@ -45,13 +45,17 @@ class PingCommand extends Command
                 $context = [
                     'http' => [
                         'method'  => 'HEAD',
+                        'timeout' => 10.0
                     ]
                 ];
                 $timeBegin = microtime(true);
-                file_get_contents($site->url, false, stream_context_create($context));
+                $result = @file_get_contents($site->url, false, stream_context_create($context));
                 $timeEnd = microtime(true);
-
-                list($http, $statusCode) = explode(' ', $http_response_header[0]);
+                if ($result !== false) {
+                    list($http, $statusCode) = explode(' ', $http_response_header[0]);
+                } else {
+                    $statusCode = 0;
+                }
 
                 SitePing::create([
                     'site_id' => $site->id,
