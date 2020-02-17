@@ -45,16 +45,21 @@ class PingCommand extends Command
                 $context = [
                     'http' => [
                         'method'  => 'HEAD',
-                        'timeout' => 10.0
+                        'timeout' => 10.0,
+                        'ignore_errors' => true,
                     ]
                 ];
                 $timeBegin = microtime(true);
                 $result = @file_get_contents($site->url, false, stream_context_create($context));
                 $timeEnd = microtime(true);
-                if ($result !== false) {
-                    list($http, $statusCode) = explode(' ', $http_response_header[0]);
-                } else {
+                if ($result === false) {
                     $statusCode = 0;
+                } elseif (!empty($http_response_header)) {
+                    foreach ($http_response_header as $line) {
+                        if (preg_match('/^HTTP\/[^\s]+\s([0-9]+)/', $line, $match)) {
+                            $statusCode = $match[1];
+                        }
+                    }
                 }
 
                 SitePing::create([
