@@ -20,6 +20,7 @@
                                 <th>#</th>
                                 <th>Name</th>
                                 <th>URL</th>
+                                <th>Time</th>
                                 <th>Result</th>
                             </tr>
                         </thead>
@@ -31,7 +32,12 @@
                                     <th>{{ $site->url }}</th>
                                     <th>
                                         @foreach ($site->pings as $ping)
-                                            <span class="badge badge-{{ $ping->status_code == 200 ? 'success' : 'danger' }}">
+                                            {{ $ping->took }} msec
+                                        @endforeach
+                                    </th>
+                                    <th>
+                                        @foreach ($site->pings as $ping)
+                                            <span class="badge badge-{{ $ping->status_code < 300 ? 'success' : 'danger' }}">
                                                 {{ $ping->status_code != 0 ? $ping->status_code : 'Fatal' }}
                                             </span>
                                         @endforeach
